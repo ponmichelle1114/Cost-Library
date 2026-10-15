@@ -4,89 +4,207 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cost Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--mute:#677085;--line:#e3e6ec;--acc:#1f5fbf;--acc2:#e8f0fc;--hl:#fff1a8;--ok:#1d7a46;--warn:#a15c00;--err:#a12}
+:root{
+  --ink:#24203a; --sky1:#4fc3ff; --sky2:#bfeeff; --grass:#5bd16b; --grass2:#3aa64b;
+  --red:#ff5a4e; --red2:#d93a30; --yellow:#ffd23f; --gold:#ffb703; --gold2:#e08e00;
+  --blue:#3b82f6; --purple:#8b5cf6; --pink:#ff7eb6; --mint:#3dd6b5; --card:#fffdf7; --mute:#6b6585;
+  --line:3px solid var(--ink); --pop:0 6px 0 var(--ink);
+}
 *{box-sizing:border-box}
-body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:14px 20px}
+html,body{margin:0}
+body{font:15px/1.45 "Fredoka",system-ui,sans-serif;color:var(--ink);min-height:100vh;
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 70%,#e9fbff 100%) fixed;overflow-x:hidden}
+/* ---------- scenery ---------- */
+.scene{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.cloud{position:absolute;background:#fff;border-radius:60px;opacity:.95;animation:drift linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:55%;height:150%;left:12%;top:-60%}
+.cloud::after{width:40%;height:120%;right:12%;top:-40%}
+.c1{width:150px;height:44px;top:9%;animation-duration:70s;left:-200px}
+.c2{width:110px;height:34px;top:24%;animation-duration:95s;animation-delay:-40s;left:-200px}
+.c3{width:190px;height:54px;top:15%;animation-duration:120s;animation-delay:-80s;left:-200px}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 400px))}}
+.hills{position:absolute;bottom:-40px;left:0;right:0;height:170px}
+.hill{position:absolute;bottom:0;border-radius:50% 50% 0 0;border:var(--line);border-bottom:none}
+.h1{width:55vw;height:150px;left:-8vw;background:var(--grass)}
+.h2{width:45vw;height:110px;left:38vw;background:var(--grass2)}
+.h3{width:40vw;height:160px;right:-10vw;background:var(--grass)}
+.coinfloat{position:absolute;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,var(--gold) 55%,var(--gold2));border:3px solid var(--ink);animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-14px) scaleX(.55)}}
+/* ---------- layout ---------- */
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:18px 18px 200px}
+header.bar{background:var(--card);border:var(--line);border-radius:22px;box-shadow:var(--pop);padding:14px 18px;position:sticky;top:10px;z-index:5}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-h1{font-size:18px;margin:0;white-space:nowrap}
-h1 small{font-weight:400;color:var(--mute);font-size:12px;margin-left:6px}
-#q{flex:1;min-width:240px;font-size:16px;padding:10px 14px;border:1px solid #c9ced8;border-radius:8px;outline:none}
-#q:focus,#pw:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc2)}
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;color:var(--mute);font-size:13px}
-select,input[type=number]{padding:6px 8px;border:1px solid #c9ced8;border-radius:6px;background:#fff;font:inherit;color:var(--ink)}
-input[type=number]{width:80px}
-button{padding:6px 12px;border:1px solid #c9ced8;border-radius:6px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
-button:hover{border-color:var(--acc);color:var(--acc)}
-button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
-#info{margin-left:auto;font-size:12px}
-main{max-width:1200px;margin:0 auto;padding:16px 20px 60px}
-#summary{color:var(--mute);margin:4px 0 12px}
-.facets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.chip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:12px;cursor:pointer}
-.chip:hover{background:var(--acc2);border-color:var(--acc);color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.crumb{font-size:12px;color:var(--mute)}
-.crumb b{color:var(--ink);font-weight:600}
-.fname{font-weight:600;font-size:15px;margin:2px 0 6px;word-break:break-word}
-.row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
-.yr{flex:none;text-align:right}
-.yr .y{font-size:20px;font-weight:700;color:var(--acc)}
-.yr .src{font-size:11px;color:var(--mute)}
-.lines{margin:6px 0 8px;padding:0;list-style:none;font-family:Consolas,"Cascadia Mono",monospace;font-size:12.5px}
-.lines li{padding:3px 8px;border-left:3px solid var(--acc2);margin:2px 0;background:#fafbfd;white-space:pre-wrap;word-break:break-word}
-mark{background:var(--hl);padding:0 1px}
-.money{color:var(--ok);font-weight:600}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-family:"Luckiest Guy",cursive;font-weight:400;font-size:30px;margin:0;letter-spacing:1px;color:var(--red);
+  text-shadow:2px 2px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink);line-height:1}
+.brand small{display:block;font-size:12px;color:var(--mute);margin-top:4px}
+.mascot{width:54px;height:54px;flex:none;animation:hop 2.8s ease-in-out infinite}
+@keyframes hop{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-10px) rotate(-4deg)}90%{transform:translateY(0) rotate(3deg)}}
+.search{flex:1;min-width:260px;display:flex;gap:10px}
+#q{flex:1;font:500 17px "Fredoka",sans-serif;padding:12px 16px;border:var(--line);border-radius:16px;outline:none;background:#fff}
+#q:focus{box-shadow:0 0 0 4px var(--yellow)}
+.btn{font:600 15px "Fredoka",sans-serif;border:var(--line);border-radius:14px;padding:9px 16px;background:#fff;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 0 var(--ink);transition:transform .08s, box-shadow .08s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.go{background:var(--red);color:#fff;font-size:17px;padding:10px 22px}
+.btn.small{padding:5px 11px;font-size:13px;border-radius:11px;box-shadow:0 3px 0 var(--ink)}
+.row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:14px}
+.modes{display:inline-flex;border:var(--line);border-radius:14px;overflow:hidden;box-shadow:0 3px 0 var(--ink)}
+.modes button{font:600 14px "Fredoka",sans-serif;border:none;background:#fff;padding:7px 12px;cursor:pointer;color:var(--ink)}
+.modes button+button{border-left:3px solid var(--ink)}
+.modes button.on{background:var(--yellow)}
+.field{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.field input,.field select{font:500 14px "Fredoka",sans-serif;border:var(--line);border-radius:11px;padding:6px 9px;background:#fff;color:var(--ink)}
+.field input{width:84px}
+#info{margin-left:auto;font-size:12px;color:var(--mute)}
+/* ---------- body ---------- */
+.main{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;margin-top:20px}
+aside{align-self:start;position:sticky;top:150px;max-height:calc(100vh - 170px);overflow:auto;padding:2px 6px 8px 2px}
+.panel{background:var(--card);border:var(--line);border-radius:18px;box-shadow:0 5px 0 var(--ink);padding:12px 12px 10px;margin-bottom:14px}
+.panel h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.panel h3 .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink)}
+.panel input.find{width:100%;font:500 13px "Fredoka",sans-serif;border:2px solid var(--ink);border-radius:9px;padding:4px 8px;margin-bottom:8px}
+.opts{display:flex;flex-direction:column;gap:4px;max-height:230px;overflow:auto}
+.opt{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px;padding:4px 8px;border-radius:10px;cursor:pointer;border:2px solid transparent}
+.opt:hover{background:#fff4c2}
+.opt.on{background:var(--yellow);border-color:var(--ink);font-weight:600}
+.opt .n{font-size:11px;background:#fff;border:2px solid var(--ink);border-radius:10px;padding:0 6px;flex:none}
+.opt .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#summary{font-weight:600;margin:2px 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.active{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;border:2px solid var(--ink);border-radius:999px;padding:1px 9px;background:#fff;cursor:pointer}
+.tag:hover{background:#ffe0de}
+.card{background:var(--card);border:var(--line);border-radius:20px;box-shadow:var(--pop);padding:14px 16px;margin-bottom:16px;
+  animation:pop .45s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+.card:hover{transform:translateY(-3px);box-shadow:0 9px 0 var(--ink);transition:.15s}
+.row{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.crumb{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+.crumb span{border:2px solid var(--ink);border-radius:999px;padding:0 9px;font-weight:600}
+.crumb .t{background:#bfe7ff}.crumb .s{background:#ffd6ec}.crumb .p{background:#d9f7c9}
+.fname{overflow-wrap:anywhere;font-weight:700;font-size:16.5px;margin:8px 0 6px;word-break:break-word}
+.coin{flex:none;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle at 35% 30%,#fff6c4,var(--gold) 55%,var(--gold2));border:var(--line);box-shadow:0 4px 0 var(--ink);
+  font-family:"Luckiest Guy",cursive;font-size:19px;color:#fff;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
+.card:hover .coin{animation:spin .8s ease}
+@keyframes spin{50%{transform:scaleX(.1)}}
+.ysrc{font-size:11px;color:var(--mute);text-align:center;margin-top:4px;max-width:90px}
+.lines{margin:6px 0 10px;padding:0;list-style:none}
+.lines li{overflow-wrap:anywhere;font:13px/1.5 "Cascadia Mono",Consolas,monospace;padding:5px 10px;margin:4px 0;background:#fff;border:2px solid #e7e1f5;border-left:6px solid var(--mint);border-radius:10px;white-space:pre-wrap;word-break:break-word}
+mark{background:var(--yellow);border-radius:4px;padding:0 2px;box-shadow:0 0 0 1px var(--ink)}
+.money{background:#d4f8d4;color:#0f6b2a;font-weight:700;border-radius:6px;padding:0 3px}
 .act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tag{font-size:11px;padding:1px 7px;border-radius:10px;background:#eef0f4;color:var(--mute)}
-.empty{text-align:center;color:var(--mute);padding:60px 0}
-kbd{background:#eef0f4;border-radius:4px;padding:0 5px;font-size:12px}
-#login{max-width:380px;margin:12vh auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px}
-#login h2{margin:0 0 6px;font-size:20px}
+.ext{font-size:11px;font-weight:700;border:2px solid var(--ink);border-radius:8px;padding:0 6px;background:#efe7ff}
+.path{font-size:11.5px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.empty{text-align:center;padding:40px 10px;font-weight:500}
+.empty .big{font-family:"Luckiest Guy",cursive;font-size:26px;color:var(--purple);letter-spacing:1px}
+.loader{display:flex;justify-content:center;gap:10px;padding:40px 0}
+.loader i{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);animation:bob 1s ease-in-out infinite}
+.loader i:nth-child(2){animation-delay:.15s;background:var(--red)}.loader i:nth-child(3){animation-delay:.3s;background:var(--mint)}
+/* ---------- login ---------- */
+#login{position:relative;z-index:2;max-width:420px;margin:12vh auto;background:var(--card);border:var(--line);border-radius:26px;box-shadow:0 8px 0 var(--ink);padding:28px;text-align:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+#login h2{font-family:"Luckiest Guy",cursive;font-weight:400;font-size:34px;margin:6px 0;color:var(--red);letter-spacing:1px;
+  text-shadow:2px 2px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
 #login p{color:var(--mute);margin:0 0 18px}
-#pw{width:100%;font-size:16px;padding:10px 12px;border:1px solid #c9ced8;border-radius:8px;outline:none;margin-bottom:12px}
-#loginErr{color:var(--err);min-height:20px;margin-top:8px;font-size:13px}
+#pw{width:100%;font:500 17px "Fredoka",sans-serif;padding:12px 14px;border:var(--line);border-radius:14px;outline:none;margin-bottom:14px;text-align:center}
+#pw:focus{box-shadow:0 0 0 4px var(--yellow)}
+#loginErr{color:var(--red2);min-height:20px;margin-top:10px;font-size:14px;font-weight:600}
 .hide{display:none!important}
+.toggleF{display:none}
+@media (max-width:860px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .search{min-width:0;flex-basis:100%}
+  #q{min-width:0}
+  .wrap{padding:12px 12px 200px}
+  aside{position:static;max-height:none;display:none}
+  aside.open{display:block}
+  .toggleF{display:inline-block}
+  header.bar{position:static}
+  .brand h1{font-size:24px}
+}
 </style>
 </head>
 <body>
+<div class="scene" aria-hidden="true">
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <div class="coinfloat" style="left:8%;top:34%"></div>
+  <div class="coinfloat" style="right:6%;top:40%;animation-delay:.8s"></div>
+  <div class="hills"><div class="hill h1"></div><div class="hill h2"></div><div class="hill h3"></div></div>
+</div>
+
+<!-- original mascot: a brick buddy with a hard hat -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="buddy" viewBox="0 0 64 64">
+    <path d="M14 22 Q32 4 50 22 L52 26 H12 Z" fill="#ffd23f" stroke="#24203a" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="29" y="9" width="6" height="8" rx="2" fill="#ffd23f" stroke="#24203a" stroke-width="2.5"/>
+    <rect x="12" y="26" width="40" height="30" rx="7" fill="#ff7a45" stroke="#24203a" stroke-width="3"/>
+    <path d="M12 41 H52 M32 26 V41 M22 41 V56 M42 41 V56" stroke="#24203a" stroke-width="1.8" opacity=".35"/>
+    <ellipse cx="25" cy="35" rx="3.2" ry="4.2" fill="#24203a"/><ellipse cx="39" cy="35" rx="3.2" ry="4.2" fill="#24203a"/>
+    <circle cx="26" cy="33.5" r="1.1" fill="#fff"/><circle cx="40" cy="33.5" r="1.1" fill="#fff"/>
+    <path d="M26 44 Q32 49 38 44" fill="none" stroke="#24203a" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="19" cy="42" r="2.6" fill="#ff7eb6" opacity=".8"/><circle cx="45" cy="42" r="2.6" fill="#ff7eb6" opacity=".8"/>
+  </symbol>
+</svg>
+
 <div id="login">
+  <svg class="mascot" style="width:84px;height:84px"><use href="#buddy"/></svg>
   <h2>Cost Library</h2>
-  <p>Enter the team password to search quotations.</p>
+  <p>Enter the team password to start searching quotations.</p>
   <input id="pw" type="password" placeholder="Team password" autofocus>
-  <button class="primary" id="loginBtn" style="width:100%;padding:10px">Sign in</button>
+  <button class="btn go" id="loginBtn" style="width:100%">Let's go!</button>
   <div id="loginErr"></div>
 </div>
 
-<div id="app" class="hide">
-<header>
-  <div class="top">
-    <h1>Cost Library <small id="count"></small></h1>
-    <input id="q" placeholder='Search quotations… e.g.  fire door 2hr   |   waterproofing membrane   |   Nippon'>
-    <button id="go" class="primary">Search</button>
+<div id="app" class="hide wrap">
+  <header class="bar">
+    <div class="top">
+      <div class="brand"><svg class="mascot"><use href="#buddy"/></svg><div><h1>Cost Library</h1><small id="count"></small></div></div>
+      <div class="search">
+        <input id="q" placeholder='Type wording… e.g.  bollard cover   |   waterproofing membrane'>
+        <button id="go" class="btn go">Search</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="modes" id="modes">
+        <button data-m="exact" class="on" title="Words side by side, in this order">Exact wording</button>
+        <button data-m="all" title="All words somewhere on the same line">All words</button>
+        <button data-m="any" title="Any of the words">Any word</button>
+      </div>
+      <label class="field">Year <input type="number" id="yfrom" placeholder="from"> – <input type="number" id="yto" placeholder="to"></label>
+      <label class="field">Sort <select id="sort"><option value="relevance">Best match</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
+      <button class="btn small" id="clear">Clear</button>
+      <button class="btn small toggleF" id="toggleF">Filters</button>
+      <span id="info"></span>
+      <button class="btn small" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside id="aside">
+      <div class="panel"><h3><span class="dot" style="background:#bfe7ff"></span>Scope / trade</h3><input class="find" data-f="trade" placeholder="find…"><div class="opts" id="f-trade"></div></div>
+      <div class="panel"><h3><span class="dot" style="background:#ffd6ec"></span>Supplier / type</h3><input class="find" data-f="supplier" placeholder="find…"><div class="opts" id="f-supplier"></div></div>
+      <div class="panel"><h3><span class="dot" style="background:#d9f7c9"></span>Sub-folder / project</h3><input class="find" data-f="sub" placeholder="find…"><div class="opts" id="f-sub"></div></div>
+      <div class="panel"><h3><span class="dot" style="background:var(--gold)"></span>Year</h3><div class="opts" id="f-year"></div></div>
+    </aside>
+    <section>
+      <div id="summary"></div>
+      <div id="results"><div class="card empty"><div class="big">Ready to hunt for rates!</div>
+        Type the wording from the quotation and press <b>Search</b>.<br>
+        <b>Exact wording</b> finds the words side by side in that order · <b>All words</b> finds them anywhere on the same line.</div></div>
+    </section>
   </div>
-  <div class="filters">
-    Trade <select id="trade"><option value="">All trades</option></select>
-    Year <input type="number" id="yfrom" placeholder="from"> – <input type="number" id="yto" placeholder="to">
-    Sort <select id="sort"><option value="relevance">Best match</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
-    <button id="clear">Clear</button>
-    <span id="info"></span>
-    <button id="logout" title="Sign out">Sign out</button>
-  </div>
-</header>
-<main>
-  <div id="summary"></div>
-  <div class="facets" id="facets"></div>
-  <div id="results"><div class="empty">Type a description, product, supplier or project name.<br><br>All words must appear on the same rate line (or in the file/folder name). Partial words work: <kbd>waterproof</kbd> finds waterproofing.</div></div>
-</main>
 </div>
 
 <script>
 const CFG = {"url": "https://vratuklctiyyiuwjwlwv.supabase.co", "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyYXR1a2xjdGl5eWl1d2p3bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk1OTMsImV4cCI6MjEwNzU5NTU5M30.RQn57l0ClWUFHzVkB5uWa9zYMES3w1q2_FLRCXcyoRE", "email": "team@costlibrary.local", "root": "D:\\Price in Singapore\\Quotation"};
 const $=s=>document.querySelector(s);
 const esc=s=>(s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let session=null, words=[];
+let session=null, words=[], mode='exact', all=[], sel={trade:new Set(),supplier:new Set(),sub:new Set(),year:new Set()}, findTxt={trade:'',supplier:'',sub:''};
 
 function store(k,v){try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,JSON.stringify(v)); }catch(e){}}
 function load(k){try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; }}
@@ -102,7 +220,7 @@ async function auth(body, grant){
 async function login(){
   $('#loginErr').textContent='Signing in…';
   try{ await auth({email:CFG.email,password:$('#pw').value},'password'); $('#loginErr').textContent=''; showApp(); }
-  catch(e){ $('#loginErr').textContent = /invalid login/i.test(e.message)?'Wrong password (Supabase: '+e.message+').':('Could not sign in: '+e.message); }
+  catch(e){ $('#loginErr').textContent = /invalid login/i.test(e.message)?'Oops! Wrong password.':('Could not sign in: '+e.message); }
 }
 async function token(){
   if(!session) throw new Error('signed out');
@@ -124,70 +242,113 @@ async function showApp(){
   try{
     const meta=await call('meta?select=k,v');
     const m=Object.fromEntries(meta.map(x=>[x.k,x.v]));
-    const st=JSON.parse(m.stats||'{}'), trades=JSON.parse(m.trades||'[]');
-    $('#count').textContent = st.count ? `${st.count.toLocaleString()} files · ${st.ymin}–${st.ymax}` : '';
+    const st=JSON.parse(m.stats||'{}');
+    $('#count').textContent = st.count ? `${st.count.toLocaleString()} quotation files · ${st.ymin}–${st.ymax}` : '';
     $('#info').textContent = m.last_update ? `Updated ${m.last_update}` : '';
-    const t=$('#trade'); t.length=1; trades.forEach(x=>t.insertAdjacentHTML('beforeend',`<option>${esc(x)}</option>`));
   }catch(e){ $('#info').textContent='Could not load library info: '+e.message; }
 }
 
-function tsq(q, op){
-  const w=(q.toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]);
-  return w.map(x=>x+':*').join(op);
+const WORD=/[\p{L}\p{N}]+/gu;
+function tsq(q, m){
+  const w=(q.toLowerCase().match(WORD)||[]);
+  if(m==='exact') return w.join(' <-> ');
+  return w.map(x=>x+':*').join(m==='all'?' & ':' | ');
 }
+function rxEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function hl(text){
   let h=esc(text);
   h=h.replace(/((?:S\$|\$|SGD)\s*[\d,]+(?:\.\d+)?)/gi,'<span class="money">$1</span>');
+  if(mode==='exact' && words.length>1){
+    const re=new RegExp('('+words.map(rxEsc).join('[^\\p{L}\\p{N}<>]+')+')(?![^<]*>)','giu');
+    return h.replace(re,'<mark>$1</mark>');
+  }
   words.filter(w=>w.length>1).forEach(w=>{
-    h=h.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![^<]*>)','gi'),'<mark>$1</mark>');
+    h=h.replace(new RegExp('('+rxEsc(w)+')(?![^<]*>)','gi'),'<mark>$1</mark>');
   });
   return h;
 }
+const subOf=x=>(x.project||'').split(' / ')[0]||'';
+const keyOf={trade:x=>x.trade||'(no trade)',supplier:x=>x.supplier||'(none)',sub:x=>subOf(x)||'(none)',year:x=>String(x.year||'—')};
+
 async function run(){
   const q=$('#q').value.trim();
-  words=(q.match(/[\p{L}\p{N}]+/gu)||[]);
-  if(!words.length){ $('#results').innerHTML='<div class="empty">Type at least one word.</div>'; return; }
-  $('#summary').textContent='Searching…'; $('#facets').innerHTML='';
-  const args={p_trade:$('#trade').value||null,y_from:+$('#yfrom').value||null,y_to:+$('#yto').value||null,p_sort:$('#sort').value,p_limit:150};
+  words=(q.match(WORD)||[]);
+  if(!words.length){ $('#results').innerHTML='<div class="card empty"><div class="big">Type a word first!</div></div>'; return; }
+  $('#summary').innerHTML=''; $('#results').innerHTML='<div class="loader"><i></i><i></i><i></i></div>';
+  const args={p_trade:null,y_from:+$('#yfrom').value||null,y_to:+$('#yto').value||null,p_sort:$('#sort').value,p_limit:600};
   try{
-    let res=await call('rpc/search_library',{method:'POST',body:JSON.stringify({q:tsq(q,' & '),...args})}), mode='AND';
-    if(!res.length && words.length>1){ res=await call('rpc/search_library',{method:'POST',body:JSON.stringify({q:tsq(q,' | '),...args})}); mode='OR'; }
-    render(res,mode);
+    all=await call('rpc/search_library',{method:'POST',body:JSON.stringify({q:tsq(q,mode),...args})});
+    Object.values(sel).forEach(s=>s.clear());
+    renderAll();
   }catch(e){
-    $('#summary').textContent='';
-    $('#results').innerHTML=`<div class="card" style="color:var(--err)">Search failed: ${esc(e.message)}</div>`;
+    $('#results').innerHTML=`<div class="card empty" style="color:var(--red2)"><div class="big">Uh-oh!</div>Search failed: ${esc(e.message)}</div>`;
   }
 }
-function render(res, mode){
-  const by={}; res.forEach(x=>{const k=x.trade||'(root)'; by[k]=(by[k]||0)+1});
-  $('#facets').innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip" data-t="${esc(k)}">${esc(k)} · ${v}</span>`).join('');
-  $('#summary').textContent = res.length ? `${res.length}${res.length>=150?'+':''} matching files`+(mode==='OR'?' (no file had all words on one line — showing any word)':'') : '';
-  if(!res.length){ $('#results').innerHTML='<div class="empty">No matches. Try fewer or shorter words.</div>'; return; }
-  $('#results').innerHTML=res.map((x,i)=>`
-   <div class="card">
-    <div class="row"><div>
-      <div class="crumb"><b>${esc(x.trade||'—')}</b>${x.supplier?' › '+esc(x.supplier):''}${x.project?' › '+esc(x.project):''}</div>
+function passes(x, skip){
+  for(const f of ['trade','supplier','sub','year']){
+    if(f===skip || !sel[f].size) continue;
+    if(!sel[f].has(keyOf[f](x))) return false;
+  }
+  return true;
+}
+function facet(f){
+  const cnt={}; all.filter(x=>passes(x,f)).forEach(x=>{const k=keyOf[f](x); cnt[k]=(cnt[k]||0)+1;});
+  let entries=Object.entries(cnt);
+  if(f==='year') entries.sort((a,b)=>b[0].localeCompare(a[0])); else entries.sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  const ft=(findTxt[f]||'').toLowerCase();
+  if(ft) entries=entries.filter(([k])=>k.toLowerCase().includes(ft));
+  sel[f].forEach(k=>{ if(!cnt[k]) entries.unshift([k,0]); });
+  $('#f-'+f).innerHTML = entries.length ? entries.map(([k,v])=>`<div class="opt ${sel[f].has(k)?'on':''}" data-f="${f}" data-k="${esc(k)}"><span class="lbl" title="${esc(k)}">${esc(k)}</span><span class="n">${v}</span></div>`).join('')
+    : '<div style="font-size:13px;color:var(--mute)">—</div>';
+}
+function renderAll(){
+  ['trade','supplier','sub','year'].forEach(facet);
+  const res=all.filter(x=>passes(x,null));
+  const chips=[]; for(const f in sel) sel[f].forEach(k=>chips.push(`<span class="tag" data-f="${f}" data-k="${esc(k)}">${esc(k)} ✕</span>`));
+  const label={exact:'exact wording',all:'all words',any:'any word'}[mode];
+  $('#summary').innerHTML = all.length
+    ? `<span>⭐ ${res.length}${all.length>=600&&!chips.length?'+':''} files (${label})</span><span class="active">${chips.join('')}</span>`
+    : '';
+  if(!all.length){
+    $('#results').innerHTML=`<div class="card empty"><div class="big">No matches found</div>
+      ${mode==='exact'?'No file has these words side by side in this order.<br><br><button class="btn small" onclick="setMode(\'all\');run()">Try “All words” instead</button>':'Try fewer or shorter words.'}</div>`;
+    return;
+  }
+  if(!res.length){ $('#results').innerHTML='<div class="card empty"><div class="big">Nothing with these filters</div>Untick a filter on the left.</div>'; return; }
+  $('#results').innerHTML=res.slice(0,300).map((x,i)=>`
+   <div class="card" style="animation-delay:${Math.min(i,10)*45}ms">
+    <div class="row"><div style="min-width:0">
+      <div class="crumb"><span class="t">${esc(x.trade||'—')}</span>${x.supplier?`<span class="s">${esc(x.supplier)}</span>`:''}${x.project?`<span class="p">${esc(x.project)}</span>`:''}</div>
       <div class="fname">${hl(x.filename)}</div>
     </div>
-    <div class="yr"><div class="y">${x.year||'—'}</div><div class="src">${esc(x.date_text||'')}${x.date_text?' · ':''}${esc(x.year_src||'')}</div></div></div>
+    <div><div class="coin">${x.year||'—'}</div><div class="ysrc">${esc(x.date_text||'')}${x.date_text?'<br>':''}${esc(x.year_src||'')}</div></div></div>
     ${x.lines&&x.lines.length?`<ul class="lines">${x.lines.map(l=>`<li>${hl(l)}</li>`).join('')}</ul>`:''}
     <div class="act">
-      <button data-i="${i}" class="cp">Copy file path</button>
-      <span class="tag">${esc((x.ext||'').replace('.','').toUpperCase())}</span>
-      <span class="tag" title="${esc(x.relpath)}">${esc(x.relpath.length>90?'…'+x.relpath.slice(-90):x.relpath)}</span>
+      <button data-id="${x.id}" class="btn small cp">📋 Copy file path</button>
+      <span class="ext">${esc((x.ext||'').replace('.','').toUpperCase())}</span>
+      <span class="path" title="${esc(x.relpath)}">${esc(x.relpath)}</span>
     </div>
-   </div>`).join('');
-  $('#results').querySelectorAll('.cp').forEach(b=>b.onclick=async()=>{
-    const x=res[+b.dataset.i]; const p=(CFG.root?CFG.root.replace(/[\\/]+$/,'')+'\\':'')+x.relpath.replace(/\//g,'\\');
-    try{ await navigator.clipboard.writeText(p); b.textContent='Copied ✓'; }catch(e){ prompt('Copy this path:',p); }
-    setTimeout(()=>b.textContent='Copy file path',1500);
-  });
+   </div>`).join('') + (res.length>300?`<div class="card empty">Showing first 300 of ${res.length} — use the filters to narrow down.</div>`:'');
 }
+function setMode(m){ mode=m; document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); }
+
+document.addEventListener('click',e=>{
+  const o=e.target.closest('.opt,.tag'); if(o){ const f=o.dataset.f,k=o.dataset.k; sel[f].has(k)?sel[f].delete(k):sel[f].add(k); renderAll(); return; }
+  const c=e.target.closest('.cp'); if(c){
+    const x=all.find(r=>String(r.id)===c.dataset.id); if(!x) return;
+    const p=(CFG.root?CFG.root.replace(/[\\/]+$/,'')+'\\':'')+x.relpath.replace(/\//g,'\\');
+    navigator.clipboard.writeText(p).then(()=>{c.textContent='✅ Copied!'},()=>prompt('Copy this path:',p));
+    setTimeout(()=>c.textContent='📋 Copy file path',1500);
+  }
+});
+document.querySelectorAll('.find').forEach(inp=>inp.addEventListener('input',()=>{findTxt[inp.dataset.f]=inp.value; facet(inp.dataset.f);}));
+$('#modes').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; setMode(b.dataset.m); if($('#q').value.trim()) run();});
 $('#loginBtn').onclick=login; $('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 $('#go').onclick=run; $('#q').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
-['#trade','#sort','#yfrom','#yto'].forEach(s=>$(s).onchange=()=>{ if($('#q').value.trim()) run(); });
-$('#facets').addEventListener('click',e=>{const t=e.target.dataset.t; if(!t)return; $('#trade').value=($('#trade').value===t?'':t); run();});
-$('#clear').onclick=()=>{['#q','#yfrom','#yto'].forEach(s=>$(s).value='');$('#trade').value='';$('#sort').value='relevance';$('#results').innerHTML='';$('#facets').innerHTML='';$('#summary').textContent='';};
+['#sort','#yfrom','#yto'].forEach(s=>$(s).onchange=()=>{ if($('#q').value.trim()) run(); });
+$('#clear').onclick=()=>{['#q','#yfrom','#yto'].forEach(s=>$(s).value='');$('#sort').value='relevance';all=[];Object.values(sel).forEach(s=>s.clear());
+  ['trade','supplier','sub','year'].forEach(f=>$('#f-'+f).innerHTML='');$('#summary').innerHTML='';$('#results').innerHTML='';};
+$('#toggleF').onclick=()=>$('#aside').classList.toggle('open');
 $('#logout').onclick=logout;
 if(!CFG){ document.body.innerHTML='<p style="padding:30px">This is the template. Open <b>Cost Library Online.html</b> instead (created by the sync).</p>'; }
 else { session=load('cl_session'); if(session) showApp(); }
