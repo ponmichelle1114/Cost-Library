@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost Library</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--mute:#677085;--line:#e3e6ec;--acc:#1f5fbf;--acc2:#e8f0fc;--hl:#fff1a8;--ok:#1d7a46;--warn:#a15c00;--err:#a12}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:14px 20px}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font-size:18px;margin:0;white-space:nowrap}
+h1 small{font-weight:400;color:var(--mute);font-size:12px;margin-left:6px}
+#q{flex:1;min-width:240px;font-size:16px;padding:10px 14px;border:1px solid #c9ced8;border-radius:8px;outline:none}
+#q:focus,#pw:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc2)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;color:var(--mute);font-size:13px}
+select,input[type=number]{padding:6px 8px;border:1px solid #c9ced8;border-radius:6px;background:#fff;font:inherit;color:var(--ink)}
+input[type=number]{width:80px}
+button{padding:6px 12px;border:1px solid #c9ced8;border-radius:6px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+#info{margin-left:auto;font-size:12px}
+main{max-width:1200px;margin:0 auto;padding:16px 20px 60px}
+#summary{color:var(--mute);margin:4px 0 12px}
+.facets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:12px;cursor:pointer}
+.chip:hover{background:var(--acc2);border-color:var(--acc);color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.crumb{font-size:12px;color:var(--mute)}
+.crumb b{color:var(--ink);font-weight:600}
+.fname{font-weight:600;font-size:15px;margin:2px 0 6px;word-break:break-word}
+.row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.yr{flex:none;text-align:right}
+.yr .y{font-size:20px;font-weight:700;color:var(--acc)}
+.yr .src{font-size:11px;color:var(--mute)}
+.lines{margin:6px 0 8px;padding:0;list-style:none;font-family:Consolas,"Cascadia Mono",monospace;font-size:12.5px}
+.lines li{padding:3px 8px;border-left:3px solid var(--acc2);margin:2px 0;background:#fafbfd;white-space:pre-wrap;word-break:break-word}
+mark{background:var(--hl);padding:0 1px}
+.money{color:var(--ok);font-weight:600}
+.act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;padding:1px 7px;border-radius:10px;background:#eef0f4;color:var(--mute)}
+.empty{text-align:center;color:var(--mute);padding:60px 0}
+kbd{background:#eef0f4;border-radius:4px;padding:0 5px;font-size:12px}
+#login{max-width:380px;margin:12vh auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px}
+#login h2{margin:0 0 6px;font-size:20px}
+#login p{color:var(--mute);margin:0 0 18px}
+#pw{width:100%;font-size:16px;padding:10px 12px;border:1px solid #c9ced8;border-radius:8px;outline:none;margin-bottom:12px}
+#loginErr{color:var(--err);min-height:20px;margin-top:8px;font-size:13px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="login">
+  <h2>Cost Library</h2>
+  <p>Enter the team password to search quotations.</p>
+  <input id="pw" type="password" placeholder="Team password" autofocus>
+  <button class="primary" id="loginBtn" style="width:100%;padding:10px">Sign in</button>
+  <div id="loginErr"></div>
+</div>
+
+<div id="app" class="hide">
+<header>
+  <div class="top">
+    <h1>Cost Library <small id="count"></small></h1>
+    <input id="q" placeholder='Search quotations… e.g.  fire door 2hr   |   waterproofing membrane   |   Nippon'>
+    <button id="go" class="primary">Search</button>
+  </div>
+  <div class="filters">
+    Trade <select id="trade"><option value="">All trades</option></select>
+    Year <input type="number" id="yfrom" placeholder="from"> – <input type="number" id="yto" placeholder="to">
+    Sort <select id="sort"><option value="relevance">Best match</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
+    <button id="clear">Clear</button>
+    <span id="info"></span>
+    <button id="logout" title="Sign out">Sign out</button>
+  </div>
+</header>
+<main>
+  <div id="summary"></div>
+  <div class="facets" id="facets"></div>
+  <div id="results"><div class="empty">Type a description, product, supplier or project name.<br><br>All words must appear on the same rate line (or in the file/folder name). Partial words work: <kbd>waterproof</kbd> finds waterproofing.</div></div>
+</main>
+</div>
+
+<script>
+const CFG = {"url": "https://vratuklctiyyiuwjwlwv.supabase.co", "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyYXR1a2xjdGl5eWl1d2p3bHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk1OTMsImV4cCI6MjEwNzU5NTU5M30.RQn57l0ClWUFHzVkB5uWa9zYMES3w1q2_FLRCXcyoRE", "email": "team@costlibrary.local", "root": "D:\\Price in Singapore\\Quotation"};
+const $=s=>document.querySelector(s);
+const esc=s=>(s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let session=null, words=[];
+
+function store(k,v){try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,JSON.stringify(v)); }catch(e){}}
+function load(k){try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; }}
+
+async function auth(body, grant){
+  const r=await fetch(`${CFG.url}/auth/v1/token?grant_type=${grant}`,{method:'POST',
+    headers:{'apikey':CFG.anon,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error_description||j.msg||('HTTP '+r.status));
+  session={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000};
+  store('cl_session',session); return session;
+}
+async function login(){
+  $('#loginErr').textContent='Signing in…';
+  try{ await auth({email:CFG.email,password:$('#pw').value},'password'); $('#loginErr').textContent=''; showApp(); }
+  catch(e){ $('#loginErr').textContent = /invalid login/i.test(e.message)?'Wrong password (Supabase: '+e.message+').':('Could not sign in: '+e.message); }
+}
+async function token(){
+  if(!session) throw new Error('signed out');
+  if(Date.now()>session.exp-60000) await auth({refresh_token:session.refresh},'refresh_token');
+  return session.access;
+}
+async function call(path, opts={}){
+  const t=await token();
+  const r=await fetch(`${CFG.url}/rest/v1/${path}`,{...opts,headers:{'apikey':CFG.anon,'Authorization':'Bearer '+t,'Content-Type':'application/json',...(opts.headers||{})}});
+  if(r.status===401){ logout(); throw new Error('Session expired - please sign in again.'); }
+  const j=await r.json().catch(()=>null);
+  if(!r.ok) throw new Error((j&&(j.message||j.hint))||('HTTP '+r.status));
+  return j;
+}
+function logout(){ session=null; store('cl_session',null); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); }
+
+async function showApp(){
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide'); $('#q').focus();
+  try{
+    const meta=await call('meta?select=k,v');
+    const m=Object.fromEntries(meta.map(x=>[x.k,x.v]));
+    const st=JSON.parse(m.stats||'{}'), trades=JSON.parse(m.trades||'[]');
+    $('#count').textContent = st.count ? `${st.count.toLocaleString()} files · ${st.ymin}–${st.ymax}` : '';
+    $('#info').textContent = m.last_update ? `Updated ${m.last_update}` : '';
+    const t=$('#trade'); t.length=1; trades.forEach(x=>t.insertAdjacentHTML('beforeend',`<option>${esc(x)}</option>`));
+  }catch(e){ $('#info').textContent='Could not load library info: '+e.message; }
+}
+
+function tsq(q, op){
+  const w=(q.toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]);
+  return w.map(x=>x+':*').join(op);
+}
+function hl(text){
+  let h=esc(text);
+  h=h.replace(/((?:S\$|\$|SGD)\s*[\d,]+(?:\.\d+)?)/gi,'<span class="money">$1</span>');
+  words.filter(w=>w.length>1).forEach(w=>{
+    h=h.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![^<]*>)','gi'),'<mark>$1</mark>');
+  });
+  return h;
+}
+async function run(){
+  const q=$('#q').value.trim();
+  words=(q.match(/[\p{L}\p{N}]+/gu)||[]);
+  if(!words.length){ $('#results').innerHTML='<div class="empty">Type at least one word.</div>'; return; }
+  $('#summary').textContent='Searching…'; $('#facets').innerHTML='';
+  const args={p_trade:$('#trade').value||null,y_from:+$('#yfrom').value||null,y_to:+$('#yto').value||null,p_sort:$('#sort').value,p_limit:150};
+  try{
+    let res=await call('rpc/search_library',{method:'POST',body:JSON.stringify({q:tsq(q,' & '),...args})}), mode='AND';
+    if(!res.length && words.length>1){ res=await call('rpc/search_library',{method:'POST',body:JSON.stringify({q:tsq(q,' | '),...args})}); mode='OR'; }
+    render(res,mode);
+  }catch(e){
+    $('#summary').textContent='';
+    $('#results').innerHTML=`<div class="card" style="color:var(--err)">Search failed: ${esc(e.message)}</div>`;
+  }
+}
+function render(res, mode){
+  const by={}; res.forEach(x=>{const k=x.trade||'(root)'; by[k]=(by[k]||0)+1});
+  $('#facets').innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip" data-t="${esc(k)}">${esc(k)} · ${v}</span>`).join('');
+  $('#summary').textContent = res.length ? `${res.length}${res.length>=150?'+':''} matching files`+(mode==='OR'?' (no file had all words on one line — showing any word)':'') : '';
+  if(!res.length){ $('#results').innerHTML='<div class="empty">No matches. Try fewer or shorter words.</div>'; return; }
+  $('#results').innerHTML=res.map((x,i)=>`
+   <div class="card">
+    <div class="row"><div>
+      <div class="crumb"><b>${esc(x.trade||'—')}</b>${x.supplier?' › '+esc(x.supplier):''}${x.project?' › '+esc(x.project):''}</div>
+      <div class="fname">${hl(x.filename)}</div>
+    </div>
+    <div class="yr"><div class="y">${x.year||'—'}</div><div class="src">${esc(x.date_text||'')}${x.date_text?' · ':''}${esc(x.year_src||'')}</div></div></div>
+    ${x.lines&&x.lines.length?`<ul class="lines">${x.lines.map(l=>`<li>${hl(l)}</li>`).join('')}</ul>`:''}
+    <div class="act">
+      <button data-i="${i}" class="cp">Copy file path</button>
+      <span class="tag">${esc((x.ext||'').replace('.','').toUpperCase())}</span>
+      <span class="tag" title="${esc(x.relpath)}">${esc(x.relpath.length>90?'…'+x.relpath.slice(-90):x.relpath)}</span>
+    </div>
+   </div>`).join('');
+  $('#results').querySelectorAll('.cp').forEach(b=>b.onclick=async()=>{
+    const x=res[+b.dataset.i]; const p=(CFG.root?CFG.root.replace(/[\\/]+$/,'')+'\\':'')+x.relpath.replace(/\//g,'\\');
+    try{ await navigator.clipboard.writeText(p); b.textContent='Copied ✓'; }catch(e){ prompt('Copy this path:',p); }
+    setTimeout(()=>b.textContent='Copy file path',1500);
+  });
+}
+$('#loginBtn').onclick=login; $('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+$('#go').onclick=run; $('#q').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+['#trade','#sort','#yfrom','#yto'].forEach(s=>$(s).onchange=()=>{ if($('#q').value.trim()) run(); });
+$('#facets').addEventListener('click',e=>{const t=e.target.dataset.t; if(!t)return; $('#trade').value=($('#trade').value===t?'':t); run();});
+$('#clear').onclick=()=>{['#q','#yfrom','#yto'].forEach(s=>$(s).value='');$('#trade').value='';$('#sort').value='relevance';$('#results').innerHTML='';$('#facets').innerHTML='';$('#summary').textContent='';};
+$('#logout').onclick=logout;
+if(!CFG){ document.body.innerHTML='<p style="padding:30px">This is the template. Open <b>Cost Library Online.html</b> instead (created by the sync).</p>'; }
+else { session=load('cl_session'); if(session) showApp(); }
+</script>
+</body>
+</html>
