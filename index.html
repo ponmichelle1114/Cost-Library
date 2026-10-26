@@ -178,6 +178,7 @@ mark{background:var(--yellow);border-radius:4px;padding:0 2px;box-shadow:0 0 0 1
       <label class="field">Year <input type="number" id="yfrom" placeholder="from"> – <input type="number" id="yto" placeholder="to"></label>
       <label class="field">Sort <select id="sort"><option value="relevance">Best match</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
       <button class="btn small" id="clear">Clear</button>
+      <button class="btn small" id="upd" title="Upload newly saved quotations from the Quotation folder (works on the PC that holds the folder)" style="background:#3dd6b5">🔄 Update library</button>
       <button class="btn small toggleF" id="toggleF">Filters</button>
       <span id="info"></span>
       <button class="btn small" id="logout">Sign out</button>
@@ -237,15 +238,36 @@ async function call(path, opts={}){
 }
 function logout(){ session=null; store('cl_session',null); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); }
 
+let lastUpdate=null, pollTimer=null;
+async function loadMeta(){
+  const meta=await call('meta?select=k,v');
+  const m=Object.fromEntries(meta.map(x=>[x.k,x.v]));
+  const st=JSON.parse(m.stats||'{}');
+  $('#count').textContent = st.count ? `${st.count.toLocaleString()} quotation files · ${st.ymin}–${st.ymax}` : '';
+  $('#info').textContent = m.last_update ? `Updated ${m.last_update}` : '';
+  return m.last_update||'';
+}
 async function showApp(){
   $('#login').classList.add('hide'); $('#app').classList.remove('hide'); $('#q').focus();
-  try{
-    const meta=await call('meta?select=k,v');
-    const m=Object.fromEntries(meta.map(x=>[x.k,x.v]));
-    const st=JSON.parse(m.stats||'{}');
-    $('#count').textContent = st.count ? `${st.count.toLocaleString()} quotation files · ${st.ymin}–${st.ymax}` : '';
-    $('#info').textContent = m.last_update ? `Updated ${m.last_update}` : '';
-  }catch(e){ $('#info').textContent='Could not load library info: '+e.message; }
+  try{ lastUpdate=await loadMeta(); }catch(e){ $('#info').textContent='Could not load library info: '+e.message; }
+  // quietly check for new uploads every 2 minutes
+  setInterval(async()=>{ try{ const u=await loadMeta(); if(lastUpdate!==null && u!==lastUpdate){ lastUpdate=u; flash('✨ New quotations added'); if($('#q').value.trim()) run(); } }catch(e){} },120000);
+}
+function flash(msg){
+  let t=document.getElementById('clToast');
+  if(!t){ t=document.createElement('div'); t.id='clToast'; t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:50;background:#fffdf7;border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 var(--ink);padding:10px 16px;font-weight:600;max-width:90vw;text-align:center'; document.body.appendChild(t); }
+  t.innerHTML=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',9000);
+}
+function startUpdate(){
+  // opens the sync helper on this PC (registered by "Register Update Button.bat")
+  location.href='costlibrary://sync';
+  flash('🔄 Updating library… a small black window opens on the PC with the Quotation folder.<br><small>Not on that PC? Updates still happen automatically every hour.</small>');
+  const before=lastUpdate; let tries=0; clearInterval(pollTimer);
+  pollTimer=setInterval(async()=>{
+    tries++;
+    try{ const u=await loadMeta(); if(u && u!==before){ clearInterval(pollTimer); lastUpdate=u; flash('✅ Library updated '+u); if($('#q').value.trim()) run(); return; } }catch(e){}
+    if(tries>=40){ clearInterval(pollTimer); flash('No new upload detected yet. If no black window appeared, run "Register Update Button.bat" once on the PC with the Quotation folder.'); }
+  },8000);
 }
 
 const WORD=/[\p{L}\p{N}]+/gu;
@@ -350,6 +372,7 @@ $('#clear').onclick=()=>{['#q','#yfrom','#yto'].forEach(s=>$(s).value='');$('#so
   ['trade','supplier','sub','year'].forEach(f=>$('#f-'+f).innerHTML='');$('#summary').innerHTML='';$('#results').innerHTML='';};
 $('#toggleF').onclick=()=>$('#aside').classList.toggle('open');
 $('#logout').onclick=logout;
+$('#upd').onclick=startUpdate;
 if(!CFG){ document.body.innerHTML='<p style="padding:30px">This is the template. Open <b>Cost Library Online.html</b> instead (created by the sync).</p>'; }
 else { session=load('cl_session'); if(session) showApp(); }
 </script>
